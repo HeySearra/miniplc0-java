@@ -93,6 +93,7 @@ public class StringIter {
 
     /**
      * 将指针指向下一个字符，并返回当前字符
+     * 这里没有改变ptrNext
      */
     public char nextChar() {
         if (this.peeked.isPresent()) {
@@ -107,6 +108,9 @@ public class StringIter {
         }
     }
 
+    /**
+     * 改变了ptrNext
+     */
     private char getNextChar() {
         if (isEOF()) {
             return 0;
