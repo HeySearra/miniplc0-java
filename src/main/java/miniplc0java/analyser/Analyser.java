@@ -187,6 +187,9 @@ public final class Analyser {
         }
     }
 
+    /**
+     * <程序> ::= 'begin'<主过程>'end'
+     */
     private void analyseProgram() throws CompileError {
         // 程序 -> 'begin' 主过程 'end'
         // 示例函数，示例如何调用子程序
@@ -200,11 +203,20 @@ public final class Analyser {
         expect(TokenType.EOF);
     }
 
+    /**
+     * <主过程> ::= <常量声明><变量声明><语句序列>
+     */
     private void analyseMain() throws CompileError {
         // 主过程 -> 常量声明 变量声明 语句序列
-        throw new Error("Not implemented");
+        analyseConstantDeclaration();
+        analyseVariableDeclaration();
+        analyseStatementSequence();
     }
 
+    /**
+     * <常量声明> ::= {<常量声明语句>}
+     * @throws CompileError
+     */
     private void analyseConstantDeclaration() throws CompileError {
         // 示例函数，示例如何解析常量声明
         // 常量声明 -> 常量声明语句*
@@ -236,6 +248,9 @@ public final class Analyser {
         }
     }
 
+    /**
+     * <变量声明>
+     */
     private void analyseVariableDeclaration() throws CompileError {
         // 变量声明 -> 变量声明语句*
 
@@ -244,12 +259,16 @@ public final class Analyser {
             // 变量声明语句 -> 'var' 变量名 ('=' 表达式)? ';'
 
             // 变量名
+            var nameToken = expect(TokenType.Ident);
 
             // 变量初始化了吗
             boolean initialized = false;
 
             // 下个 token 是等于号吗？如果是的话分析初始化
-
+            if (nextIf(TokenType.Equal) != null) {
+                // 表达式
+                analyseExpression();
+            }
             // 分析初始化的表达式
 
             // 分号
@@ -266,6 +285,10 @@ public final class Analyser {
         }
     }
 
+    /**
+     * <语句序列>
+     * @throws CompileError
+     */
     private void analyseStatementSequence() throws CompileError {
         // 语句序列 -> 语句*
         // 语句 -> 赋值语句 | 输出语句 | 空语句
@@ -275,6 +298,7 @@ public final class Analyser {
             var peeked = peek();
             if (peeked.getTokenType() == TokenType.Ident) {
                 // 调用相应的分析函数
+                analyseStatement();
                 // 如果遇到其他非终结符的 FIRST 集呢？
             } else {
                 // 都不是，摸了
@@ -288,8 +312,10 @@ public final class Analyser {
         // 常表达式 -> 符号? 无符号整数
         boolean negative = false;
         if (nextIf(TokenType.Plus) != null) {
+            expect(TokenType.Plus);
             negative = false;
         } else if (nextIf(TokenType.Minus) != null) {
+            expect(TokenType.Minus);
             negative = true;
         }
 
@@ -303,6 +329,10 @@ public final class Analyser {
         return value;
     }
 
+    /**
+     * <表达式>
+     * @throws CompileError
+     */
     private void analyseExpression() throws CompileError {
         // 表达式 -> 项 (加法运算符 项)*
         // 项
@@ -323,16 +353,26 @@ public final class Analyser {
 
             // 生成代码
             if (op.getTokenType() == TokenType.Plus) {
+                expect(TokenType.Plus);
                 instructions.add(new Instruction(Operation.ADD));
             } else if (op.getTokenType() == TokenType.Minus) {
+                expect(TokenType.Minus);
                 instructions.add(new Instruction(Operation.SUB));
             }
+            analyseItem();
         }
     }
 
+    /**
+     * <赋值语句>
+     * @throws CompileError
+     */
     private void analyseAssignmentStatement() throws CompileError {
         // 赋值语句 -> 标识符 '=' 表达式 ';'
-
+//        var nameToken = expect(TokenType.Ident);
+//        expect(TokenType.Equal);
+//        analyseExpression();
+//        expect(TokenType.Semicolon);
         // 分析这个语句
 
         // 标识符是什么？
@@ -351,8 +391,14 @@ public final class Analyser {
         // 把结果保存
         var offset = getOffset(name, null);
         instructions.add(new Instruction(Operation.STO, offset));
+
+
     }
 
+    /**
+     * <输出语句>
+     * @throws CompileError
+     */
     private void analyseOutputStatement() throws CompileError {
         // 输出语句 -> 'print' '(' 表达式 ')' ';'
 
@@ -367,9 +413,23 @@ public final class Analyser {
         instructions.add(new Instruction(Operation.WRT));
     }
 
+    /**
+     * <项>
+     * @throws CompileError
+     */
     private void analyseItem() throws CompileError {
         // 项 -> 因子 (乘法运算符 因子)*
-
+//        analyseFactor();
+//        while(check(TokenType.Mult) || check(TokenType.Div)){
+//            if (check(TokenType.Mult)) {
+//                expect(TokenType.Mult);
+//                analyseFactor();
+//            }
+//            else{
+//                expect(TokenType.Div);
+//                analyseFactor();
+//            }
+//        }
         // 因子
 
         while (true) {
@@ -389,6 +449,10 @@ public final class Analyser {
         }
     }
 
+    /**
+     * <因子>
+     * @throws CompileError
+     */
     private void analyseFactor() throws CompileError {
         // 因子 -> 符号? (标识符 | 无符号整数 | '(' 表达式 ')')
 
@@ -410,6 +474,7 @@ public final class Analyser {
             var symbol = symbolTable.get(name);
             if (symbol == null) {
                 // 没有这个标识符
+                expect(TokenType.Ident);
                 throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ null);
             } else if (!symbol.isInitialized) {
                 // 标识符没初始化
@@ -419,12 +484,17 @@ public final class Analyser {
             instructions.add(new Instruction(Operation.LOD, offset));
         } else if (check(TokenType.Uint)) {
             // 是整数
-            // 加载整数值
+            // 加载整数值            // 调用相应的处理函数
+            //expect(TokenType.Uint);
             int value = 0;
             instructions.add(new Instruction(Operation.LIT, value));
+
         } else if (check(TokenType.LParen)) {
             // 是表达式
             // 调用相应的处理函数
+            expect(TokenType.LParen);
+            analyseExpression();
+            expect(TokenType.RParen);
         } else {
             // 都不是，摸了
             throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
@@ -433,6 +503,5 @@ public final class Analyser {
         if (negate) {
             instructions.add(new Instruction(Operation.SUB));
         }
-        throw new Error("Not implemented");
     }
 }
