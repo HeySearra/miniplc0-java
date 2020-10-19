@@ -69,7 +69,7 @@ public class Tokenizer {
         if (res > 2147483647){
             throw new TokenizeError(ErrorCode.IntegerOverflow, it.currentPos());
         }
-        Token token = new Token(TokenType.Uint, Integer.valueOf(res), startPos, it.currentPos());
+        Token token = new Token(TokenType.Uint, Integer.valueOf((int)res), startPos, it.currentPos());
         return token;
     }
 
