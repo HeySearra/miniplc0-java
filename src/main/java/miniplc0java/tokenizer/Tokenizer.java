@@ -51,7 +51,7 @@ public class Tokenizer {
         // 解析成功则返回无符号整数类型的token，否则返回编译错误
         //
         // Token 的 Value 应填写数字的值
-        int res = 0;
+        long res = 0;
         Pos startPos;
         try{
             startPos = it.nextPos();
@@ -65,6 +65,9 @@ public class Tokenizer {
             res *= 10;
             res += (int)it.peekChar();
             it.nextChar();
+        }
+        if (res > 2147483647){
+            throw new TokenizeError(ErrorCode.IntegerOverflow, it.currentPos());
         }
         Token token = new Token(TokenType.Uint, Integer.valueOf(res), startPos, it.currentPos());
         return token;
