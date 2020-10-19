@@ -102,19 +102,19 @@ public class Tokenizer {
         Pattern Var = Pattern.compile("var");
         Pattern Print = Pattern.compile("print");
         if (Begin.matcher(s).matches()){
-            token = new Token(TokenType.Begin, null, startPos, it.currentPos());
+            token = new Token(TokenType.Begin, "begin", startPos, it.currentPos());
         }
         else if (End.matcher(s).matches()){
-            token = new Token(TokenType.End, null, startPos, it.currentPos());
+            token = new Token(TokenType.End, "end", startPos, it.currentPos());
         }
         else if (Const.matcher(s).matches()){
-            token = new Token(TokenType.Const, null, startPos, it.currentPos());
+            token = new Token(TokenType.Const, "const", startPos, it.currentPos());
         }
         else if (Var.matcher(s).matches()){
-            token = new Token(TokenType.Var, null, startPos, it.currentPos());
+            token = new Token(TokenType.Var, "var", startPos, it.currentPos());
         }
         else if (Print.matcher(s).matches()){
-            token = new Token(TokenType.Print, null, startPos, it.currentPos());
+            token = new Token(TokenType.Print, "print", startPos, it.currentPos());
         }
         else {
             token = new Token(TokenType.Ident, s, startPos, it.currentPos());
@@ -158,7 +158,7 @@ public class Tokenizer {
 
             case 0:
                 // 填入返回语句
-                return new Token(TokenType.EOF, '\0', it.previousPos(), it.currentPos());
+                return new Token(TokenType.EOF, "", it.previousPos(), it.currentPos());
 
             default:
                 // 不认识这个输入，摸了
