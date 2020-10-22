@@ -58,6 +58,9 @@ public class Tokenizer {
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
+        if (it.isEOF()){
+            throw new TokenizeError(ErrorCode.EOF, it.currentPos());
+        }
         if (!Character.isDigit(it.peekChar())) {
             throw new TokenizeError(ErrorCode.InvalidInput, it.currentPos());
         }
@@ -90,6 +93,9 @@ public class Tokenizer {
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
+        if (it.isEOF()){
+            throw new TokenizeError(ErrorCode.EOF, it.currentPos());
+        }
         if (!Character.isLetter(it.peekChar())) {
             throw new TokenizeError(ErrorCode.InvalidInput, it.currentPos());
         }
@@ -99,24 +105,19 @@ public class Tokenizer {
         }
         String s = b.toString();
         Token token;
-        Pattern Begin = Pattern.compile("begin");
-        Pattern End = Pattern.compile("end");
-        Pattern Const = Pattern.compile("const");
-        Pattern Var = Pattern.compile("var");
-        Pattern Print = Pattern.compile("print");
-        if (Begin.matcher(s).matches()){
+        if (s.equals("begin")){
             token = new Token(TokenType.Begin, "begin", startPos, it.currentPos());
         }
-        else if (End.matcher(s).matches()){
+        else if (s.equals("end")){
             token = new Token(TokenType.End, "end", startPos, it.currentPos());
         }
-        else if (Const.matcher(s).matches()){
+        else if (s.equals("const")){
             token = new Token(TokenType.Const, "const", startPos, it.currentPos());
         }
-        else if (Var.matcher(s).matches()){
+        else if (s.equals("var")){
             token = new Token(TokenType.Var, "var", startPos, it.currentPos());
         }
-        else if (Print.matcher(s).matches()){
+        else if (s.equals("print")){
             token = new Token(TokenType.Print, "print", startPos, it.currentPos());
         }
         else {
@@ -129,40 +130,31 @@ public class Tokenizer {
         switch (it.nextChar()) {
             case '+':
                 return new Token(TokenType.Plus, '+', it.previousPos(), it.currentPos());
-
             case '-':
                 // 填入返回语句
                 return new Token(TokenType.Minus, '-', it.previousPos(), it.currentPos());
-
             case '*':
                 // 填入返回语句
                 return new Token(TokenType.Mult, '*', it.previousPos(), it.currentPos());
-
             case '/':
                 // 填入返回语句
                 return new Token(TokenType.Div, '/', it.previousPos(), it.currentPos());
-
             // 填入更多状态和返回语句
             case '=':
                 // 填入返回语句
                 return new Token(TokenType.Equal, '=', it.previousPos(), it.currentPos());
-
             case ';':
                 // 填入返回语句
                 return new Token(TokenType.Semicolon, ';', it.previousPos(), it.currentPos());
-
             case '(':
                 // 填入返回语句
                 return new Token(TokenType.LParen, '(', it.previousPos(), it.currentPos());
-
             case ')':
                 // 填入返回语句
                 return new Token(TokenType.RParen, ')', it.previousPos(), it.currentPos());
-
             case 0:
                 // 填入返回语句
                 return new Token(TokenType.EOF, "", it.previousPos(), it.currentPos());
-
             default:
                 // 不认识这个输入，摸了
                 throw new TokenizeError(ErrorCode.InvalidInput, it.previousPos());
