@@ -51,10 +51,9 @@ public class Tokenizer {
         // 解析成功则返回无符号整数类型的token，否则返回编译错误
         //
         // Token 的 Value 应填写数字的值
-        long res = 0;
         Pos startPos;
         try{
-            startPos = it.nextPos();
+            startPos = it.previousPos();
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
@@ -64,15 +63,20 @@ public class Tokenizer {
         if (!Character.isDigit(it.peekChar())) {
             throw new TokenizeError(ErrorCode.InvalidInput, it.currentPos());
         }
-        while (!it.isEOF() && Character.isDigit(it.peekChar())) {
-            res *= 10;
-            res += (int)it.peekChar();
-            it.nextChar();
+        StringBuffer uint=new StringBuffer("");
+        while(Character.isDigit(it.peekChar())){
+            uint.append(it.nextChar());
         }
-        if (res > 2147483647){
+        int num;
+        try{
+            num = Integer.parseInt(uint.toString());
+        }catch(Exception e){
+            throw new TokenizeError(ErrorCode.InvalidPrint, it.currentPos());
+        }
+        if (num > 2147483647){
             throw new TokenizeError(ErrorCode.IntegerOverflow, it.currentPos());
         }
-        Token token = new Token(TokenType.Uint, Integer.valueOf((int)res), startPos, it.currentPos());
+        Token token = new Token(TokenType.Uint, num, startPos, it.currentPos());
         return token;
     }
 
@@ -89,7 +93,7 @@ public class Tokenizer {
         StringBuffer b = new StringBuffer("");
         Pos startPos;
         try{
-            startPos = it.nextPos();
+            startPos = it.previousPos();
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
@@ -100,8 +104,7 @@ public class Tokenizer {
             throw new TokenizeError(ErrorCode.InvalidInput, it.currentPos());
         }
         while (!it.isEOF() && Character.isLetterOrDigit(it.peekChar())) {
-            b.append(it.peekChar());
-            it.nextChar();
+            b.append(it.nextChar());
         }
         String s = b.toString();
         Token token;
