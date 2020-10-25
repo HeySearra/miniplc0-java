@@ -64,7 +64,7 @@ public class Tokenizer {
             throw new TokenizeError(ErrorCode.InvalidInput, it.currentPos());
         }
         StringBuffer uint=new StringBuffer("");
-        while(Character.isDigit(it.peekChar())){
+        while(!it.isEOF() && Character.isDigit(it.peekChar())){
             uint.append(it.nextChar());
         }
         int num;

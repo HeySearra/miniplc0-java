@@ -189,6 +189,7 @@ public final class Analyser {
 
     /**
      * <程序> ::= 'begin'<主过程>'end'
+     * @throws CompileError
      */
     private void analyseProgram() throws CompileError {
         // 程序 -> 'begin' 主过程 'end'
@@ -205,6 +206,7 @@ public final class Analyser {
 
     /**
      * <主过程> ::= <常量声明><变量声明><语句序列>
+     * @throws CompileError
      */
     private void analyseMain() throws CompileError {
         // 主过程 -> 常量声明 变量声明 语句序列
@@ -249,7 +251,8 @@ public final class Analyser {
     }
 
     /**
-     * <变量声明>
+     * <变量声明> ::= {<变量声明语句>}
+     * @throws CompileError
      */
     private void analyseVariableDeclaration() throws CompileError {
         // 变量声明 -> 变量声明语句*
@@ -286,7 +289,7 @@ public final class Analyser {
     }
 
     /**
-     * <语句序列>
+     * <语句序列> ::= {<语句>}
      * @throws CompileError
      */
     private void analyseStatementSequence() throws CompileError {
@@ -305,13 +308,30 @@ public final class Analyser {
                 break;
             }
         }
+        // while (peek().getTokenType() != TokenType.End){
+        //     analyseStatement();
+        // }
+    }
+
+    /**
+     * <语句> ::= <赋值语句>|<输出语句>|<空语句>
+     * @throws CompileError
+     */
+    private void analyseStatement() throws CompileError {
+        if (check(TokenType.Print)) {
+            analyseOutputStatement();
+        }
         throw new Error("Not implemented");
     }
 
+    /**
+     * <常表达式> ::= [<符号>]<无符号整数>
+     * @throws CompileError
+     */
     private int analyseConstantExpression() throws CompileError {
         // 常表达式 -> 符号? 无符号整数
         boolean negative = false;
-        if (nextIf(TokenType.Plus) != null) {
+        if (check(TokenType.Plus)) {
             expect(TokenType.Plus);
             negative = false;
         } else if (nextIf(TokenType.Minus) != null) {
@@ -330,7 +350,7 @@ public final class Analyser {
     }
 
     /**
-     * <表达式>
+     * <表达式> ::= <项>{<加法型运算符><项>}
      * @throws CompileError
      */
     private void analyseExpression() throws CompileError {
@@ -364,7 +384,7 @@ public final class Analyser {
     }
 
     /**
-     * <赋值语句>
+     * <赋值语句> ::= <标识符>'='<表达式>';'
      * @throws CompileError
      */
     private void analyseAssignmentStatement() throws CompileError {
@@ -396,7 +416,7 @@ public final class Analyser {
     }
 
     /**
-     * <输出语句>
+     * <输出语句> ::= 'print' '(' <表达式> ')' ';'
      * @throws CompileError
      */
     private void analyseOutputStatement() throws CompileError {
@@ -404,17 +424,14 @@ public final class Analyser {
 
         expect(TokenType.Print);
         expect(TokenType.LParen);
-
         analyseExpression();
-
         expect(TokenType.RParen);
         expect(TokenType.Semicolon);
-
         instructions.add(new Instruction(Operation.WRT));
     }
 
     /**
-     * <项>
+     * <项> ::= <因子>{<乘法型运算符><因子>}
      * @throws CompileError
      */
     private void analyseItem() throws CompileError {
@@ -450,7 +467,7 @@ public final class Analyser {
     }
 
     /**
-     * <因子>
+     * <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
      * @throws CompileError
      */
     private void analyseFactor() throws CompileError {
