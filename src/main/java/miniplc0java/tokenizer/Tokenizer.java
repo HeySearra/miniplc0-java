@@ -53,7 +53,7 @@ public class Tokenizer {
         // Token 的 Value 应填写数字的值
         Pos startPos;
         try{
-            startPos = it.previousPos();
+            startPos = it.currentPos();
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
@@ -93,7 +93,7 @@ public class Tokenizer {
         StringBuffer b = new StringBuffer("");
         Pos startPos;
         try{
-            startPos = it.previousPos();
+            startPos = it.currentPos();
         }catch(Error e){
             throw new TokenizeError(ErrorCode.EOF, it.currentPos());
         }
