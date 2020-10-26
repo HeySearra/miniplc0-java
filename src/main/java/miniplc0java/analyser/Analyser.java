@@ -251,7 +251,7 @@ public final class Analyser {
     }
 
     /**
-     * <变量声明> ::= {<变量声明语句>}
+     * <变量声明> ::= {'var'<标识符>['='<表达式>]';'}
      * @throws CompileError
      */
     private void analyseVariableDeclaration() throws CompileError {
@@ -271,6 +271,7 @@ public final class Analyser {
             if (nextIf(TokenType.Equal) != null) {
                 // 表达式
                 analyseExpression();
+                initialized = true;
             }
             // 分析初始化的表达式
 
@@ -278,8 +279,8 @@ public final class Analyser {
             expect(TokenType.Semicolon);
 
             // 加入符号表，请填写名字和当前位置（报错用）
-            String name = /* 名字 */ null;
-            addSymbol(name, false, false, /* 当前位置 */ null);
+            String name = nameToken.getValueString();
+            addSymbol(name, initialized, false, nameToken.getStartPos());
 
             // 如果没有初始化的话在栈里推入一个初始值
             if (!initialized) {
@@ -441,7 +442,7 @@ public final class Analyser {
 //            }
 //        }
         // 因子
-
+        analyseFactor();
         while (true) {
             // 预读可能是运算符的 token
             Token op = peek();
